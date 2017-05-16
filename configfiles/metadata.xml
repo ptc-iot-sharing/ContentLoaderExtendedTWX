@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Entities>
+    <ExtensionPackages>
+        <ExtensionPackage dependsOn="" description="" minimumThingWorxVersion="6.0.0" name="PatchUtilities_Extension"
+                          packageVersion="1.0.21" vendor="PTC Romania">
+            <JarResources/>
+        </ExtensionPackage>
+    </ExtensionPackages>
+    <Resources>
+        <Resource aspect.isCreatable="false" aspect.isEditableExtensionObject="false"
+                  className="com.thingworx.extensions.http.PatchUtilities" description="" name="PatchUtilities"/>
+    </Resources>
+</Entities>
