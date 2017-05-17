@@ -1,1 +1,3 @@
+Adds PATCH request capabilities to TWX. Only PatchJSON is supported at the moment.
+
 Run the gradle task : packageExtension
