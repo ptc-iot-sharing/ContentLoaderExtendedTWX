@@ -2,7 +2,7 @@
 <Entities>
     <ExtensionPackages>
         <ExtensionPackage dependsOn="" description="" minimumThingWorxVersion="6.0.0" name="PatchUtilities_Extension"
-                          packageVersion="1.0.21" vendor="PTC Romania">
+                          packageVersion="1.0.24" vendor="PTC Romania">
             <JarResources/>
         </ExtensionPackage>
     </ExtensionPackages>

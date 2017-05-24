@@ -35,14 +35,14 @@ project.ext {
     srcDir = "${baseDir}/src/main" // where are the sources located
     buildDir = "${baseDir}/build" // where is the build saved
     configDir = "${baseDir}/configfiles" // folder location of the metadata.xml file
-    entitiesDir = "${baseDir}/configfiles/Entities" // folder location of the metadata.xml file
+    entitiesDir = "${baseDir}/configfiles/Entities" // folder additional Entities file that you want to be included in the extension
     zipDir = "${baseDir}/zip" // where to store the generated zip
     thingworxSdkDir = "${baseDir}/lib/common" // where the thingworx sdk is located
-    packageVendor = "ThingWorx Customer Service"
-    packageName = "ThingWatcherExtension"
-    packageTitle = "ThingWatcherExtension"
+    packageVendor = "ThingWorx Customer Service" // MANIFEST.MF information
+    packageName = "ThingWatcherExtension" // MANIFEST.MF information
+    packageTitle = "ThingWatcherExtension" // MANIFEST.MF information
     packageVersion = version
-    thingworxServerRoot = "http://Administrator:admin@localhost:8009"
+    thingworxServerRoot = "http://Administrator:admin@localhost:8009" // When calling the Upload task, what is the target server
 }
 
 repositories {
@@ -74,25 +74,19 @@ configurations {
     compile {
         extendsFrom packageDependencies
     }
-    thingworxsdk
 }
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
-    // add all the dependencies for the extension using the packageDependencies configuration. Here only one is added
+    // compile dependencies are dependencies that you know that already exist in Tomcat
     compile group: 'commons-io', name: 'commons-io', version: '2.5'
     compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.3'
 
-    // the zip version
+    // we depend on the thingworx sdk that should be in the thingorxSdkDir
     compile fileTree(dir: project.ext.thingworxSdkDir, include: ['*.jar'])
+    // package dependencies are external dependences that are also written in the metadata.xml under JarResoruces
+    // include all local jar, and other jars using manven
     packageDependencies fileTree(dir: project.ext.localJarDir, include: ['**/*.jar'])
-}
-
-task extractTwxSdk(type: Copy) {
-    from {
-        configurations.thingworxsdk.collect { zipTree(it) }
-    }
-    into project.ext.thingworxSdkDir
 }
 
 gradle.projectsEvaluated {
