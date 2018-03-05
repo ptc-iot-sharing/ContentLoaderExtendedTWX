@@ -27,8 +27,8 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
-public class PatchUtilities extends Resource {
-    private static final Logger _logger = LoggerFactory.getLogger(PatchUtilities.class);
+public class ContentLoaderExtended extends Resource {
+    private static final Logger _logger = LoggerFactory.getLogger(ContentLoaderExtended.class);
 
     public static void enablePremptiveAuthentication(HttpClientContext context, String rawURL) throws MalformedURLException {
         URL url = new URL(rawURL);

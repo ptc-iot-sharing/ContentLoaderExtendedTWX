@@ -89,10 +89,6 @@ dependencies {
     packageDependencies fileTree(dir: project.ext.localJarDir, include: ['**/*.jar'])
 }
 
-gradle.projectsEvaluated {
-    compileJava.dependsOn(extractTwxSdk)
-}
-
 jar {
     archiveName = project.ext.extensionJar
     manifest {
