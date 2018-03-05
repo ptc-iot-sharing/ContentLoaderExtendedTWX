@@ -2,7 +2,7 @@
 <Entities>
     <ExtensionPackages>
         <ExtensionPackage dependsOn="" description="" minimumThingWorxVersion="6.0.0"
-                          name="ContentLoaderExtended_Extension" packageVersion="1.0.26" vendor="PTC Romania">
+                          name="ContentLoaderExtended_Extension" packageVersion="1.0.35" vendor="PTC Romania">
             <JarResources/>
         </ExtensionPackage>
     </ExtensionPackages>
