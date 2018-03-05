@@ -1,3 +1,16 @@
-Adds PATCH request capabilities to TWX, as well as auth using client side ssl certs
+Adds PATCH request capabilities to TWX, as well as auth using client side ssl certs.
+
+Example of using client certificates:
+```
+var params = {
+	certFilePath: "keystore.p12",
+	fileRepository: "SystemRepository",
+	certFilePassword: "changeit",
+	url: "https://localhost:4433/$1",
+    ignoreSSLErrors: true
+};
+
+var result = Resources["ContentLoaderExtended"].GetBlob(params);
+```
 
 Run the gradle task : packageExtension
