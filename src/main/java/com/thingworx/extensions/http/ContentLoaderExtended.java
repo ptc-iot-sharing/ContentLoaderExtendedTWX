@@ -6,6 +6,7 @@ import com.thingworx.common.utils.JSONUtilities;
 import com.thingworx.common.utils.StreamUtilities;
 import com.thingworx.common.utils.StringUtilities;
 import com.thingworx.entities.utils.EntityUtilities;
+import com.thingworx.logging.LogUtilities;
 import com.thingworx.metadata.annotations.ThingworxServiceDefinition;
 import com.thingworx.metadata.annotations.ThingworxServiceParameter;
 import com.thingworx.metadata.annotations.ThingworxServiceResult;
@@ -38,7 +39,6 @@ import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.SSLContexts;
 import org.json.JSONObject;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
 import java.io.ByteArrayInputStream;
@@ -50,7 +50,7 @@ import java.security.KeyStore;
 import java.util.Iterator;
 
 public class ContentLoaderExtended extends Resource {
-    private static final Logger _logger = LoggerFactory.getLogger(ContentLoaderExtended.class);
+    private static final Logger _logger = LogUtilities.getInstance().getApplicationLogger(ContentLoaderExtended.class);
 
     public static void enablePremptiveAuthentication(HttpClientContext context, String rawURL) throws MalformedURLException {
         URL url = new URL(rawURL);
@@ -253,7 +253,7 @@ public class ContentLoaderExtended extends Resource {
 
     @ThingworxServiceDefinition(
             name = "GetBlob",
-            description = "Load JSON content from a URL via HTTP PATCH",
+            description = "Load BLOB using GET from a server with client certs",
             category = "BLOB"
     )
     @ThingworxServiceResult(
@@ -293,7 +293,11 @@ public class ContentLoaderExtended extends Resource {
             @ThingworxServiceParameter
                     (name = "certFilePath", description = "Path to the p12 cert file", baseType = "STRING", aspects = {"defaultvalue:cert.p12"}) String certFilePath,
             @ThingworxServiceParameter
-                    (name = "certFilePassword", description = "Password of the p12 file", baseType = "STRING", aspects = {"defaultvalue:changeit"}) String certFilePassword
+                    (name = "certFilePassword", description = "Password of the p12 file", baseType = "STRING", aspects = {"defaultvalue:changeit"}) String certFilePassword,
+            @ThingworxServiceParameter
+                    (name = "resultFileRepository", description = "File repository where to store the result", baseType = "THINGNAME", aspects = {"thingTemplate:FileRepository"}) String resultFileRepository,
+            @ThingworxServiceParameter
+                    (name = "resultFilePath", description = "Path in the result file repository", baseType = "STRING", aspects = {"defaultvalue:result.data"}) String resultFilePath
     )
             throws Exception {
         byte[] result = new byte[0];
@@ -305,6 +309,7 @@ public class ContentLoaderExtended extends Resource {
             FileRepositoryThing fileRepo = (FileRepositoryThing)
                     EntityUtilities.findEntity(fileRepository, RelationshipTypes.ThingworxRelationshipTypes.Thing);
             stream = new ByteArrayInputStream(fileRepo.LoadBinary(certFilePath));
+            _logger.info("Read certificate from file");
         }
 
         try (CloseableHttpClient client = createHttpClient(username, password, ignoreSSLErrors, timeout,
@@ -329,8 +334,15 @@ public class ContentLoaderExtended extends Resource {
                 } else {
                     result = StreamUtilities.readStreamToByteArray(response.getEntity().getContent());
                 }
-
+                _logger.info("Read executed GET request and read " + result.length + " out of the stream");
             }
+            if (!StringUtilities.isNullOrEmpty(resultFilePath) && !StringUtilities.isNullOrEmpty(resultFileRepository)) {
+                FileRepositoryThing resultFileRepo = (FileRepositoryThing)
+                        EntityUtilities.findEntity(resultFileRepository, RelationshipTypes.ThingworxRelationshipTypes.Thing);
+                resultFileRepo.SaveBinary(resultFilePath, result);
+                _logger.info("Written the result to file");
+            }
+
         } finally {
             try {
                 httpGet.reset();
