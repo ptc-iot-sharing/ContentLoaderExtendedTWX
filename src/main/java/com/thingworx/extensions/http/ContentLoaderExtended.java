@@ -254,12 +254,12 @@ public class ContentLoaderExtended extends Resource {
     @ThingworxServiceDefinition(
             name = "GetBlob",
             description = "Load JSON content from a URL via HTTP PATCH",
-            category = "STRING"
+            category = "BLOB"
     )
     @ThingworxServiceResult(
             name = "result",
             description = "The resulting data as string",
-            baseType = "STRING"
+            baseType = "BLOB"
     )
     public byte[] GetBlob(
             @ThingworxServiceParameter
