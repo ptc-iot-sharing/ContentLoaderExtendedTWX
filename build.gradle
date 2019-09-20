@@ -81,6 +81,7 @@ dependencies {
     // compile dependencies are dependencies that you know that already exist in Tomcat
     compile group: 'commons-io', name: 'commons-io', version: '2.5'
     compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.3'
+    compile group: 'org.apache.httpcomponents', name: 'httpmime', version: '4.5.6'
 
     // we depend on the thingworx sdk that should be in the thingorxSdkDir
     compile fileTree(dir: project.ext.thingworxSdkDir, include: ['*.jar'])
