@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?><Entities>
   <ExtensionPackages>
-    <ExtensionPackage dependsOn="" description="" minimumThingWorxVersion="6.0.0" name="ContentLoaderExtended_Extension" packageVersion="1.1.1" vendor="PTC Romania">
+    <ExtensionPackage dependsOn="" description="" minimumThingWorxVersion="6.0.0" name="ContentLoaderExtended_Extension" packageVersion="1.1.2" vendor="PTC Romania">
       <JarResources/>
     </ExtensionPackage>
   </ExtensionPackages>
