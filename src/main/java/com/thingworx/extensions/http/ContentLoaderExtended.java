@@ -60,7 +60,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -1143,150 +1142,147 @@ public class ContentLoaderExtended extends Resource {
         ) String proxyScheme
     )
         throws Exception {
-        FileRepositoryThing repoThing = null;
-        FileInputStream inputStream = null;
+        FileRepositoryThing repoThing;
+        FileInputStream inputStream;
 
-        JSONObject result = new JSONObject();
-        try {
-            if (StringUtilities.isNullOrEmpty(url)) {
+        JSONObject result;
+        if (StringUtilities.isNullOrEmpty(url)) {
+            throw new InvalidRequestException(
+                "URL parameter cannot be blank",
+                RESTAPIConstants.StatusCode.STATUS_BAD_REQUEST
+            );
+        }
+
+        if (
+            !ArgumentValidator.checkBothNotSetOrBothSet(
+                repository,
+                pathOnRepository
+            )
+        ) {
+            throw new InvalidRequestException(
+                "Invalid repository or path",
+                RESTAPIConstants.StatusCode.STATUS_BAD_REQUEST
+            );
+        }
+
+        if (
+            partsToSend == null &&
+                StringUtilities.isNullOrEmpty(repository) &&
+                StringUtilities.isNullOrEmpty(pathOnRepository)
+        ) {
+            throw new InvalidRequestException(
+                "Must have either pathOnRepository and repository or partsToSend",
+                RESTAPIConstants.StatusCode.STATUS_BAD_REQUEST
+            );
+        }
+
+        MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
+        if (partsToSend != null) {
+            this.infoTableToMultipart((InfoTable) partsToSend, entityBuilder);
+        }
+
+        if (
+            !StringUtilities.isNullOrEmpty(repository) &&
+                !StringUtilities.isNullOrEmpty(repository)
+        ) {
+            String fileName = FilenameUtils.getName(pathOnRepository);
+            if (StringUtilities.isNullOrEmpty(fileName)) {
                 throw new InvalidRequestException(
-                    "URL parameter cannot be blank",
+                    "Filename could not be found in path: [" + pathOnRepository + "]",
                     RESTAPIConstants.StatusCode.STATUS_BAD_REQUEST
                 );
             }
 
-            if (
-                !ArgumentValidator.checkBothNotSetOrBothSet(
-                    repository,
-                    pathOnRepository
-                )
-            ) {
+            repoThing = (FileRepositoryThing) ThingUtilities.findThing(repository);
+            if (repoThing == null) {
                 throw new InvalidRequestException(
-                    "Invalid repository or path",
+                    "File Repository [" + repository + "] does not exist",
                     RESTAPIConstants.StatusCode.STATUS_BAD_REQUEST
                 );
             }
 
-            if (
-                partsToSend == null &&
-                    StringUtilities.isNullOrEmpty(repository) &&
-                    StringUtilities.isNullOrEmpty(pathOnRepository)
-            ) {
+            try {
+                inputStream = repoThing.openFileForRead(pathOnRepository);
+                String mimeType = URLConnection.guessContentTypeFromName(fileName);
+                ContentType contentType = mimeType != null
+                    ? ContentType.create(mimeType)
+                    : ContentType.APPLICATION_OCTET_STREAM;
+                entityBuilder.addBinaryBody(
+                    multipartFileName,
+                    inputStream,
+                    contentType,
+                    fileName
+                );
+            } catch (Exception ex) {
                 throw new InvalidRequestException(
-                    "Must have either pathOnRepository and repository or partsToSend",
+                    "File [" +
+                        fileName +
+                        "] in repository [" +
+                        repository +
+                        "] could not be opened for reading",
                     RESTAPIConstants.StatusCode.STATUS_BAD_REQUEST
                 );
             }
+        }
 
-            MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
-            if (partsToSend != null) {
-                this.infoTableToMultipart((InfoTable) partsToSend, entityBuilder);
-            }
+        HttpEntity entity = entityBuilder.build();
 
-            if (
-                !StringUtilities.isNullOrEmpty(repository) &&
-                    !StringUtilities.isNullOrEmpty(repository)
-            ) {
-                String fileName = FilenameUtils.getName(pathOnRepository);
-                if (StringUtilities.isNullOrEmpty(fileName)) {
-                    throw new InvalidRequestException(
-                        "Filename could not be found in path: [" + pathOnRepository + "]",
-                        RESTAPIConstants.StatusCode.STATUS_BAD_REQUEST
-                    );
-                }
+        try (
+            CloseableHttpClient client = createHttpClient(
+                username,
+                password,
+                ignoreSSLErrors,
+                timeout,
+                useNTLM,
+                workstation,
+                domain,
+                useProxy,
+                proxyHost,
+                proxyPort,
+                proxyScheme,
+                null,
+                null
+            )
+        ) {
+            HttpPost post = new HttpPost(url);
+            String stringResult;
+            if (headers != null) {
+                Iterator iHeaders = headers.keys();
 
-                repoThing = (FileRepositoryThing) ThingUtilities.findThing(repository);
-                if (repoThing == null) {
-                    throw new InvalidRequestException(
-                        "File Repository [" + repository + "] does not exist",
-                        RESTAPIConstants.StatusCode.STATUS_BAD_REQUEST
-                    );
-                }
-
-                try {
-                    inputStream = repoThing.openFileForRead(pathOnRepository);
-                    String mimeType = URLConnection.guessContentTypeFromName(fileName);
-                    ContentType contentType = mimeType != null
-                        ? ContentType.create(mimeType)
-                        : ContentType.APPLICATION_OCTET_STREAM;
-                    entityBuilder.addBinaryBody(
-                        multipartFileName,
-                        inputStream,
-                        contentType,
-                        fileName
-                    );
-                } catch (Exception var26) {
-                    throw new InvalidRequestException(
-                        "File [" +
-                            fileName +
-                            "] in repository [" +
-                            repository +
-                            "] could not be opened for reading",
-                        RESTAPIConstants.StatusCode.STATUS_BAD_REQUEST
-                    );
+                while (iHeaders.hasNext()) {
+                    String headerName = (String) iHeaders.next();
+                    stringResult = headers.get(headerName).toString();
+                    post.addHeader(headerName, stringResult);
                 }
             }
 
-            HttpEntity entity = entityBuilder.build();
+            post.setEntity(entity);
+            CloseableHttpResponse response = client.execute(post);
+            Throwable exception = null;
 
-            try (
-                CloseableHttpClient client = createHttpClient(
-                    username,
-                    password,
-                    ignoreSSLErrors,
-                    timeout,
-                    useNTLM,
-                    workstation,
-                    domain,
-                    useProxy,
-                    proxyHost,
-                    proxyPort,
-                    proxyScheme,
-                    null,
-                    null
-                )
-            ) {
-                HttpPost post = new HttpPost(url);
-                String stringResult;
-                if (headers != null) {
-                    Iterator iHeaders = headers.keys();
-
-                    while (iHeaders.hasNext()) {
-                        String headerName = (String) iHeaders.next();
-                        stringResult = headers.get(headerName).toString();
-                        post.addHeader(headerName, stringResult);
-                    }
-                }
-
-                post.setEntity(entity);
-                CloseableHttpResponse response = client.execute(post);
-                Throwable var43 = null;
-
-                try {
-                    stringResult =
-                        StringUtilities.readFromStream(
-                            response.getEntity().getContent(),
-                            true
-                        );
-                    result = JSONUtilities.readJSON(stringResult);
-                } catch (Throwable var39) {
-                    var43 = var39;
-                    throw var39;
-                } finally {
-                    if (response != null) {
-                        if (var43 != null) {
-                            try {
-                                response.close();
-                            } catch (Throwable var38) {
-                                var43.addSuppressed(var38);
-                            }
-                        } else {
+            try {
+                stringResult =
+                    StringUtilities.readFromStream(
+                        response.getEntity().getContent(),
+                        true
+                    );
+                result = JSONUtilities.readJSON(stringResult);
+            } catch (Throwable ex) {
+                exception = ex;
+                throw ex;
+            } finally {
+                if (response != null) {
+                    if (exception != null) {
+                        try {
                             response.close();
+                        } catch (Throwable ex) {
+                            exception.addSuppressed(ex);
                         }
+                    } else {
+                        response.close();
                     }
                 }
             }
-        } finally {
         }
         return result;
     }
@@ -1295,18 +1291,9 @@ public class ContentLoaderExtended extends Resource {
         InfoTable infoTable,
         MultipartEntityBuilder builder
     ) {
-        ArrayList<String> fieldNames = infoTable
-            .getDataShape()
-            .getFields()
-            .getNames();
-        Iterator var4 = infoTable.getRows().iterator();
 
-        while (var4.hasNext()) {
-            ValueCollection rowToSend = (ValueCollection) var4.next();
-            Iterator var6 = fieldNames.iterator();
-
-            while (var6.hasNext()) {
-                String fieldName = (String) var6.next();
+        for (ValueCollection rowToSend : infoTable.getRows()) {
+            for (String fieldName : infoTable.getDataShape().getFields().getNames()) {
                 builder.addTextBody(
                     fieldName,
                     rowToSend.getStringValue(fieldName),

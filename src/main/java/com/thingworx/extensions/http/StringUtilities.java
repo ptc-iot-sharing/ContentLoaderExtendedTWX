@@ -3,6 +3,7 @@ package com.thingworx.extensions.http;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 public class StringUtilities {
 
@@ -26,7 +27,7 @@ public class StringUtilities {
       throws Exception {
     int length = 8192;
     StringBuilder buffer = new StringBuilder();
-    InputStreamReader isr = new InputStreamReader(stream, "UTF-8");
+    InputStreamReader isr = new InputStreamReader(stream, StandardCharsets.UTF_8);
     Throwable var5 = null;
 
     try {
