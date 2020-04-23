@@ -24,12 +24,12 @@ public class StringUtilities {
   }
 
   public static String readFromStream(InputStream stream, boolean withClose)
-      throws Exception {
+    throws Exception {
     int length = 8192;
     StringBuilder buffer = new StringBuilder();
     InputStreamReader isr = new InputStreamReader(
-        stream,
-        StandardCharsets.UTF_8
+      stream,
+      StandardCharsets.UTF_8
     );
     Throwable var5 = null;
 
@@ -47,8 +47,7 @@ public class StringUtilities {
           try {
             in.close();
             stream.close();
-          } catch (Exception ignored) {
-          }
+          } catch (Exception ignored) {}
         }
       } catch (Throwable var34) {
         var7 = var34;

@@ -7,8 +7,7 @@ import java.util.Map;
 
 public class ArgumentValidator {
 
-  public ArgumentValidator() {
-  }
+  public ArgumentValidator() {}
 
   private static final void throwValueIsNullException(String message) {
     if (message == null) {
@@ -39,7 +38,7 @@ public class ArgumentValidator {
    */
   @Deprecated
   public static String checkNotBlank(String string, String message)
-      throws IllegalArgumentException {
+    throws IllegalArgumentException {
     if (StringUtilities.isBlank(string)) {
       throw new IllegalArgumentException(message);
     } else {
@@ -52,18 +51,18 @@ public class ArgumentValidator {
    */
   @Deprecated
   public static boolean checkBothNotSetOrBothSet(
-      String string1,
-      String string2
+    String string1,
+    String string2
   ) {
     if (
-        StringUtilities.isNullOrEmpty(string1) &&
-            StringUtilities.isNullOrEmpty(string2)
+      StringUtilities.isNullOrEmpty(string1) &&
+      StringUtilities.isNullOrEmpty(string2)
     ) {
       return true;
     } else {
       return (
-          !StringUtilities.isNullOrEmpty(string1) &&
-              !StringUtilities.isNullOrEmpty(string2)
+        !StringUtilities.isNullOrEmpty(string1) &&
+        !StringUtilities.isNullOrEmpty(string2)
       );
     }
   }
@@ -86,8 +85,8 @@ public class ArgumentValidator {
   }
 
   public static <T extends Iterable<?>> T validateNotNullOrEmpty(
-      T value,
-      String message
+    T value,
+    String message
   ) {
     validateNotNull(value, message);
     Iterator<?> iterator = value.iterator();
@@ -99,8 +98,8 @@ public class ArgumentValidator {
   }
 
   public static <T extends Collection<?>> T validateNotNullOrEmpty(
-      T value,
-      String message
+    T value,
+    String message
   ) {
     validateNotNull(value, message);
     if (value.isEmpty()) {
@@ -111,8 +110,8 @@ public class ArgumentValidator {
   }
 
   public static <T extends Map<?, ?>> T validateNotNullOrEmpty(
-      T value,
-      String message
+    T value,
+    String message
   ) {
     validateNotNull(value, message);
     if (value.isEmpty()) {
