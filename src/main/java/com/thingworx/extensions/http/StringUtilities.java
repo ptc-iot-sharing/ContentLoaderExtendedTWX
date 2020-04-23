@@ -27,7 +27,10 @@ public class StringUtilities {
       throws Exception {
     int length = 8192;
     StringBuilder buffer = new StringBuilder();
-    InputStreamReader isr = new InputStreamReader(stream, StandardCharsets.UTF_8);
+    InputStreamReader isr = new InputStreamReader(
+        stream,
+        StandardCharsets.UTF_8
+    );
     Throwable var5 = null;
 
     try {
