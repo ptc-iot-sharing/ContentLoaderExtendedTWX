@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class ArgumentValidator {
+
     public ArgumentValidator() {
     }
 
@@ -30,15 +31,20 @@ public class ArgumentValidator {
         }
     }
 
-    /** @deprecated */
+    /**
+     * @deprecated
+     */
     @Deprecated
     public static Object checkNotNull(Object obj, String message) {
         return validateNotNull(obj, message);
     }
 
-    /** @deprecated */
+    /**
+     * @deprecated
+     */
     @Deprecated
-    public static String checkNotBlank(String string, String message) throws IllegalArgumentException {
+    public static String checkNotBlank(String string, String message)
+        throws IllegalArgumentException {
         if (StringUtilities.isBlank(string)) {
             throw new IllegalArgumentException(message);
         } else {
@@ -46,13 +52,24 @@ public class ArgumentValidator {
         }
     }
 
-    /** @deprecated */
+    /**
+     * @deprecated
+     */
     @Deprecated
-    public static boolean checkBothNotSetOrBothSet(String string1, String string2) {
-        if (StringUtilities.isNullOrEmpty(string1) && StringUtilities.isNullOrEmpty(string2)) {
+    public static boolean checkBothNotSetOrBothSet(
+        String string1,
+        String string2
+    ) {
+        if (
+            StringUtilities.isNullOrEmpty(string1) &&
+                StringUtilities.isNullOrEmpty(string2)
+        ) {
             return true;
         } else {
-            return !StringUtilities.isNullOrEmpty(string1) && !StringUtilities.isNullOrEmpty(string2);
+            return (
+                !StringUtilities.isNullOrEmpty(string1) &&
+                    !StringUtilities.isNullOrEmpty(string2)
+            );
         }
     }
 
@@ -73,7 +90,10 @@ public class ArgumentValidator {
         return value;
     }
 
-    public static <T extends Iterable<?>> T validateNotNullOrEmpty(T value, String message) {
+    public static <T extends Iterable<?>> T validateNotNullOrEmpty(
+        T value,
+        String message
+    ) {
         validateNotNull(value, message);
         Iterator<?> iterator = value.iterator();
         if (!iterator.hasNext()) {
@@ -83,7 +103,10 @@ public class ArgumentValidator {
         return value;
     }
 
-    public static <T extends Collection<?>> T validateNotNullOrEmpty(T value, String message) {
+    public static <T extends Collection<?>> T validateNotNullOrEmpty(
+        T value,
+        String message
+    ) {
         validateNotNull(value, message);
         if (value.isEmpty()) {
             throwValueIsEmptyException(message);
@@ -92,7 +115,10 @@ public class ArgumentValidator {
         return value;
     }
 
-    public static <T extends Map<?, ?>> T validateNotNullOrEmpty(T value, String message) {
+    public static <T extends Map<?, ?>> T validateNotNullOrEmpty(
+        T value,
+        String message
+    ) {
         validateNotNull(value, message);
         if (value.isEmpty()) {
             throwValueIsEmptyException(message);
@@ -112,13 +138,13 @@ public class ArgumentValidator {
 
     public static <T> T validateNotNullOrEmpty(T value, String message) {
         if (value instanceof String) {
-            validateNotNullOrEmpty((String)value, message);
+            validateNotNullOrEmpty((String) value, message);
         } else if (value instanceof Collection) {
-            validateNotNullOrEmpty((Collection)value, message);
+            validateNotNullOrEmpty((Collection) value, message);
         } else if (value instanceof Map) {
-            validateNotNullOrEmpty((Map)value, message);
+            validateNotNullOrEmpty((Map) value, message);
         } else if (value instanceof Iterable) {
-            validateNotNullOrEmpty((Iterable)value, message);
+            validateNotNullOrEmpty((Iterable) value, message);
         } else {
             validateNotNull(value, message);
             if (value.getClass().isArray() && 0 == Array.getLength(value)) {
