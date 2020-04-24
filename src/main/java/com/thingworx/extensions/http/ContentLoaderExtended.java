@@ -1186,7 +1186,7 @@ public class ContentLoaderExtended extends Resource {
       baseType = "INFOTABLE"
     ) InfoTable partsToSend,
     @ThingworxServiceParameter(
-      name = "partsToSend",
+      name = "filesToSend",
       description = "Infotable where row field is a file that should be sent as part of the multipart request",
       baseType = "INFOTABLE"
     ) InfoTable filesToSend,
