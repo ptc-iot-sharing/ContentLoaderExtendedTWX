@@ -25,18 +25,10 @@ public class ArgumentValidator {
     }
   }
 
-  /**
-   * @deprecated
-   */
-  @Deprecated
   public static Object checkNotNull(Object obj, String message) {
     return validateNotNull(obj, message);
   }
 
-  /**
-   * @deprecated
-   */
-  @Deprecated
   public static String checkNotBlank(String string, String message)
     throws IllegalArgumentException {
     if (StringUtilities.isBlank(string)) {
@@ -46,10 +38,6 @@ public class ArgumentValidator {
     }
   }
 
-  /**
-   * @deprecated
-   */
-  @Deprecated
   public static boolean checkBothNotSetOrBothSet(
     String string1,
     String string2

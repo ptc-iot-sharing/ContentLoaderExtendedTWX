@@ -5,6 +5,9 @@ import com.thingworx.common.exceptions.InvalidRequestException;
 import com.thingworx.common.utils.HttpUtilities;
 import com.thingworx.common.utils.JSONUtilities;
 import com.thingworx.common.utils.StreamUtilities;
+import com.thingworx.datashape.DataShape;
+import com.thingworx.datashape.DataShapeUtilities;
+import com.thingworx.entities.RootEntity;
 import com.thingworx.entities.utils.EntityUtilities;
 import com.thingworx.entities.utils.ThingUtilities;
 import com.thingworx.logging.LogUtilities;
@@ -13,9 +16,11 @@ import com.thingworx.metadata.annotations.ThingworxServiceParameter;
 import com.thingworx.metadata.annotations.ThingworxServiceResult;
 import com.thingworx.relationships.RelationshipTypes;
 import com.thingworx.resources.Resource;
+import com.thingworx.resources.entities.EntityServices;
 import com.thingworx.things.repository.FileRepositoryThing;
 import com.thingworx.types.InfoTable;
 import com.thingworx.types.collections.ValueCollection;
+import com.thingworx.types.primitives.StringPrimitive;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -1064,12 +1069,142 @@ public class ContentLoaderExtended extends Resource {
       name = "partsToSend",
       description = "Infotable where each field is a part to send",
       baseType = "INFOTABLE"
-    ) Object partsToSend,
+    ) InfoTable partsToSend,
     @ThingworxServiceParameter(
       name = "multipartFileName",
       description = "Optional user name credential",
       baseType = "STRING"
     ) String multipartFileName,
+    @ThingworxServiceParameter(
+      name = "username",
+      description = "Optional user name credential",
+      baseType = "STRING"
+    ) String username,
+    @ThingworxServiceParameter(
+      name = "password",
+      description = "Optional password credential",
+      baseType = "STRING"
+    ) String password,
+    @ThingworxServiceParameter(
+      name = "headers",
+      description = "Optional HTTP headers",
+      baseType = "JSON"
+    ) JSONObject headers,
+    @ThingworxServiceParameter(
+      name = "ignoreSSLErrors",
+      description = "Ignore SSL Certificate Errors",
+      baseType = "BOOLEAN"
+    ) Boolean ignoreSSLErrors,
+    @ThingworxServiceParameter(
+      name = "timeout",
+      description = "Optional timeout in seconds",
+      baseType = "NUMBER",
+      aspects = { "defaultValue:60" }
+    ) Double timeout,
+    @ThingworxServiceParameter(
+      name = "useNTLM",
+      description = "Use NTLM Authentication",
+      baseType = "BOOLEAN",
+      aspects = { "defaultValue:false" }
+    ) Boolean useNTLM,
+    @ThingworxServiceParameter(
+      name = "workstation",
+      description = "Auth workstation",
+      baseType = "STRING",
+      aspects = { "defaultValue:" }
+    ) String workstation,
+    @ThingworxServiceParameter(
+      name = "domain",
+      description = "Auth domain",
+      baseType = "STRING",
+      aspects = { "defaultValue:" }
+    ) String domain,
+    @ThingworxServiceParameter(
+      name = "useProxy",
+      description = "Use Proxy server",
+      baseType = "BOOLEAN",
+      aspects = { "defaultValue:false" }
+    ) Boolean useProxy,
+    @ThingworxServiceParameter(
+      name = "proxyHost",
+      description = "Proxy host",
+      baseType = "STRING",
+      aspects = { "defaultValue:" }
+    ) String proxyHost,
+    @ThingworxServiceParameter(
+      name = "proxyPort",
+      description = "Proxy port",
+      baseType = "INTEGER",
+      aspects = { "defaultValue:8080" }
+    ) Integer proxyPort,
+    @ThingworxServiceParameter(
+      name = "proxyScheme",
+      description = "Proxy scheme",
+      baseType = "STRING",
+      aspects = { "defaultValue:http" }
+    ) String proxyScheme
+  )
+    throws Exception {
+    ValueCollection vc = new ValueCollection();
+    vc.put("repository", new StringPrimitive(repository));
+    vc.put("pathOnRepository", new StringPrimitive(pathOnRepository));
+    vc.put("multipartFileName", new StringPrimitive(multipartFileName));
+    DataShape dataShapeReference =
+      (
+        (DataShape) EntityUtilities.findEntity(
+          "MultipartFiles_DS",
+          RelationshipTypes.ThingworxRelationshipTypes.DataShape
+        )
+      );
+    InfoTable filesToSend = new InfoTable(
+      dataShapeReference.getDataShape()
+    );
+    filesToSend.addRow(vc);
+    return this.PostMultipartMultipleFiles(
+        url,
+        partsToSend,
+        filesToSend,
+        username,
+        password,
+        headers,
+        ignoreSSLErrors,
+        timeout,
+        useNTLM,
+        workstation,
+        domain,
+        useProxy,
+        proxyHost,
+        proxyPort,
+        proxyScheme
+      );
+  }
+
+  @ThingworxServiceDefinition(
+    name = "PostMultipartMultipleFiles",
+    description = "Multipart data upload from Thingworx to and external target via HTTP POST with multiple files",
+    category = "Multipart"
+  )
+  @ThingworxServiceResult(
+    name = "result",
+    description = "Response as JSON Object",
+    baseType = "JSON"
+  )
+  public JSONObject PostMultipartMultipleFiles(
+    @ThingworxServiceParameter(
+      name = "url",
+      description = "URL to load",
+      baseType = "STRING"
+    ) String url,
+    @ThingworxServiceParameter(
+      name = "partsToSend",
+      description = "Infotable where each row is a multipart part to send",
+      baseType = "INFOTABLE"
+    ) InfoTable partsToSend,
+    @ThingworxServiceParameter(
+      name = "partsToSend",
+      description = "Infotable where row field is a file that should be sent as part of the multipart request",
+      baseType = "INFOTABLE"
+    ) InfoTable filesToSend,
     @ThingworxServiceParameter(
       name = "username",
       description = "Optional user name credential",
@@ -1151,72 +1286,79 @@ public class ContentLoaderExtended extends Resource {
       );
     }
 
-    if (
-      !ArgumentValidator.checkBothNotSetOrBothSet(repository, pathOnRepository)
-    ) {
-      throw new InvalidRequestException(
-        "Invalid repository or path",
-        RESTAPIConstants.StatusCode.STATUS_BAD_REQUEST
-      );
+    for (ValueCollection row : filesToSend.getRows()) {
+      if (
+        !ArgumentValidator.checkBothNotSetOrBothSet(
+          row.getStringValue("repository"),
+          row.getStringValue("pathOnRepository")
+        )
+      ) {
+        throw new InvalidRequestException(
+          "Invalid repository or path",
+          RESTAPIConstants.StatusCode.STATUS_BAD_REQUEST
+        );
+      }
     }
 
-    if (
-      partsToSend == null &&
-      StringUtilities.isNullOrEmpty(repository) &&
-      StringUtilities.isNullOrEmpty(pathOnRepository)
-    ) {
+    if (partsToSend == null && filesToSend == null) {
       throw new InvalidRequestException(
-        "Must have either pathOnRepository and repository or partsToSend",
+        "Must have either filesToSend or partsToSend",
         RESTAPIConstants.StatusCode.STATUS_BAD_REQUEST
       );
     }
 
     MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
     if (partsToSend != null) {
-      this.infoTableToMultipart((InfoTable) partsToSend, entityBuilder);
+      this.infoTableToMultipart(partsToSend, entityBuilder);
     }
 
-    if (
-      !StringUtilities.isNullOrEmpty(repository) &&
-      !StringUtilities.isNullOrEmpty(repository)
-    ) {
-      String fileName = FilenameUtils.getName(pathOnRepository);
-      if (StringUtilities.isNullOrEmpty(fileName)) {
-        throw new InvalidRequestException(
-          "Filename could not be found in path: [" + pathOnRepository + "]",
-          RESTAPIConstants.StatusCode.STATUS_BAD_REQUEST
-        );
-      }
+    for (ValueCollection row : filesToSend.getRows()) {
+      String repository = row.getStringValue("repository");
+      String pathOnRepository = row.getStringValue("pathOnRepository");
+      String multipartFileName = row.getStringValue("multipartFileName");
 
-      repoThing = (FileRepositoryThing) ThingUtilities.findThing(repository);
-      if (repoThing == null) {
-        throw new InvalidRequestException(
-          "File Repository [" + repository + "] does not exist",
-          RESTAPIConstants.StatusCode.STATUS_BAD_REQUEST
-        );
-      }
+      if (
+        !StringUtilities.isNullOrEmpty(repository) &&
+        !StringUtilities.isNullOrEmpty(repository)
+      ) {
+        String fileName = FilenameUtils.getName(pathOnRepository);
+        if (StringUtilities.isNullOrEmpty(fileName)) {
+          throw new InvalidRequestException(
+            "Filename could not be found in path: [" + pathOnRepository + "]",
+            RESTAPIConstants.StatusCode.STATUS_BAD_REQUEST
+          );
+        }
 
-      try {
-        inputStream = repoThing.openFileForRead(pathOnRepository);
-        String mimeType = URLConnection.guessContentTypeFromName(fileName);
-        ContentType contentType = mimeType != null
-          ? ContentType.create(mimeType)
-          : ContentType.APPLICATION_OCTET_STREAM;
-        entityBuilder.addBinaryBody(
-          multipartFileName,
-          inputStream,
-          contentType,
-          fileName
-        );
-      } catch (Exception ex) {
-        throw new InvalidRequestException(
-          "File [" +
-          fileName +
-          "] in repository [" +
-          repository +
-          "] could not be opened for reading",
-          RESTAPIConstants.StatusCode.STATUS_BAD_REQUEST
-        );
+        repoThing = (FileRepositoryThing) ThingUtilities.findThing(repository);
+        if (repoThing == null) {
+          throw new InvalidRequestException(
+            "File Repository [" + repository + "] does not exist",
+            RESTAPIConstants.StatusCode.STATUS_BAD_REQUEST
+          );
+        }
+
+        try {
+          inputStream = repoThing.openFileForRead(pathOnRepository);
+          String mimeType = URLConnection.guessContentTypeFromName(fileName);
+          ContentType contentType = mimeType != null
+            ? ContentType.create(mimeType)
+            : ContentType.APPLICATION_OCTET_STREAM;
+          entityBuilder.addBinaryBody(
+            multipartFileName,
+            inputStream,
+            contentType,
+            fileName
+          );
+        } catch (Exception ex) {
+          throw new InvalidRequestException(
+            "File [" +
+            fileName +
+            "] in repository [" +
+            repository +
+            "] could not be opened for reading",
+            RESTAPIConstants.StatusCode.STATUS_BAD_REQUEST
+          );
+        }
       }
     }
 
