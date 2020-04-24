@@ -6,8 +6,6 @@ import com.thingworx.common.utils.HttpUtilities;
 import com.thingworx.common.utils.JSONUtilities;
 import com.thingworx.common.utils.StreamUtilities;
 import com.thingworx.datashape.DataShape;
-import com.thingworx.datashape.DataShapeUtilities;
-import com.thingworx.entities.RootEntity;
 import com.thingworx.entities.utils.EntityUtilities;
 import com.thingworx.entities.utils.ThingUtilities;
 import com.thingworx.logging.LogUtilities;
@@ -16,7 +14,6 @@ import com.thingworx.metadata.annotations.ThingworxServiceParameter;
 import com.thingworx.metadata.annotations.ThingworxServiceResult;
 import com.thingworx.relationships.RelationshipTypes;
 import com.thingworx.resources.Resource;
-import com.thingworx.resources.entities.EntityServices;
 import com.thingworx.things.repository.FileRepositoryThing;
 import com.thingworx.types.InfoTable;
 import com.thingworx.types.collections.ValueCollection;
@@ -87,43 +84,6 @@ public class ContentLoaderExtended extends Resource {
     BasicScheme basicAuth = new BasicScheme();
     authCache.put(targetHost, basicAuth);
     context.setAuthCache(authCache);
-  }
-
-  private static void addResponseStatus(
-    Boolean includeRespStatus,
-    JSONObject json,
-    CloseableHttpResponse response
-  )
-    throws JSONException {
-    if (includeRespStatus != null && includeRespStatus) {
-      JSONObject status = new JSONObject();
-      StatusLine statusLine = response.getStatusLine();
-      status.put("protocolVersion", statusLine.getProtocolVersion());
-      status.put("statusCode", statusLine.getStatusCode());
-      status.put("reasonPhrase", statusLine.getReasonPhrase());
-      json.put("responseStatus", status);
-    }
-  }
-
-  public static String cookiesToString(List<Cookie> cookies) {
-    StringBuilder cookieResult = new StringBuilder();
-    if (cookies != null && cookies.size() > 0) {
-      boolean isFirst = true;
-
-      for (Cookie cookie : cookies) {
-        if (isFirst) {
-          isFirst = false;
-        } else {
-          cookieResult.append("; ");
-        }
-
-        cookieResult.append(cookie.getName());
-        cookieResult.append('=');
-        cookieResult.append(cookie.getValue());
-      }
-    }
-
-    return cookieResult.toString();
   }
 
   @ThingworxServiceDefinition(
@@ -220,7 +180,13 @@ public class ContentLoaderExtended extends Resource {
       description = "Proxy scheme",
       baseType = "STRING",
       aspects = { "defaultValue:http" }
-    ) String proxyScheme
+    ) String proxyScheme,
+    @ThingworxServiceParameter(
+      name = "includeStatusCode",
+      description = "Include the response code in response",
+      baseType = "BOOLEAN",
+      aspects = { "defaultValue:false" }
+    ) Boolean includeStatusCode
   )
     throws Exception {
     JSONObject json;
@@ -291,6 +257,7 @@ public class ContentLoaderExtended extends Resource {
         } else {
           json.put("headers", "");
         }
+        addResponseStatus(includeStatusCode, json, response);
       }
     } finally {
       try {
@@ -781,7 +748,13 @@ public class ContentLoaderExtended extends Resource {
       description = "Proxy scheme",
       baseType = "STRING",
       aspects = { "defaultValue:http" }
-    ) String proxyScheme
+    ) String proxyScheme,
+    @ThingworxServiceParameter(
+      name = "includeStatusCode",
+      description = "Include the response code in response",
+      baseType = "BOOLEAN",
+      aspects = { "defaultValue:false" }
+    ) Boolean includeStatusCode
   )
     throws Exception {
     CloseableHttpClient client = createHttpClient(
@@ -845,6 +818,7 @@ public class ContentLoaderExtended extends Resource {
         } else {
           json.put("headers", "");
         }
+        addResponseStatus(includeStatusCode, json, response);
       }
     } finally {
       try {
@@ -956,7 +930,13 @@ public class ContentLoaderExtended extends Resource {
       description = "Proxy scheme",
       baseType = "STRING",
       aspects = { "defaultValue:http" }
-    ) String proxyScheme
+    ) String proxyScheme,
+    @ThingworxServiceParameter(
+      name = "includeStatusCode",
+      description = "Include the response code in response",
+      baseType = "BOOLEAN",
+      aspects = { "defaultValue:false" }
+    ) Boolean includeStatusCode
   )
     throws Exception {
     JSONObject json = null;
@@ -1027,7 +1007,7 @@ public class ContentLoaderExtended extends Resource {
           cookieResult = cookiesToString(context.getCookieStore().getCookies());
           json.put("_cookies", cookieResult);
         }
-
+        addResponseStatus(includeStatusCode, json, response);
         if (headers != null) {
           json.put("headers", headers);
         } else {
@@ -1142,7 +1122,13 @@ public class ContentLoaderExtended extends Resource {
       description = "Proxy scheme",
       baseType = "STRING",
       aspects = { "defaultValue:http" }
-    ) String proxyScheme
+    ) String proxyScheme,
+    @ThingworxServiceParameter(
+      name = "includeStatusCode",
+      description = "Include the response code in response",
+      baseType = "BOOLEAN",
+      aspects = { "defaultValue:false" }
+    ) Boolean includeStatusCode
   )
     throws Exception {
     ValueCollection vc = new ValueCollection();
@@ -1156,9 +1142,7 @@ public class ContentLoaderExtended extends Resource {
           RelationshipTypes.ThingworxRelationshipTypes.DataShape
         )
       );
-    InfoTable filesToSend = new InfoTable(
-      dataShapeReference.getDataShape()
-    );
+    InfoTable filesToSend = new InfoTable(dataShapeReference.getDataShape());
     filesToSend.addRow(vc);
     return this.PostMultipartMultipleFiles(
         url,
@@ -1175,7 +1159,8 @@ public class ContentLoaderExtended extends Resource {
         useProxy,
         proxyHost,
         proxyPort,
-        proxyScheme
+        proxyScheme,
+        includeStatusCode
       );
   }
 
@@ -1272,7 +1257,13 @@ public class ContentLoaderExtended extends Resource {
       description = "Proxy scheme",
       baseType = "STRING",
       aspects = { "defaultValue:http" }
-    ) String proxyScheme
+    ) String proxyScheme,
+    @ThingworxServiceParameter(
+      name = "includeStatusCode",
+      description = "Include the response code in response",
+      baseType = "BOOLEAN",
+      aspects = { "defaultValue:false" }
+    ) Boolean includeStatusCode
   )
     throws Exception {
     FileRepositoryThing repoThing;
@@ -1404,6 +1395,7 @@ public class ContentLoaderExtended extends Resource {
             true
           );
         result = JSONUtilities.readJSON(stringResult);
+        addResponseStatus(includeStatusCode, result, response);
       } catch (Throwable ex) {
         exception = ex;
         throw ex;
@@ -1533,5 +1525,44 @@ public class ContentLoaderExtended extends Resource {
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
+  }
+
+  private void addResponseStatus(
+    Boolean includeRespStatus,
+    JSONObject json,
+    CloseableHttpResponse response
+  )
+    throws JSONException {
+    if (includeRespStatus != null && includeRespStatus) {
+      JSONObject status = new JSONObject();
+      StatusLine statusLine = response.getStatusLine();
+      status.put("protocolVersion", statusLine.getProtocolVersion());
+      status.put("statusCode", statusLine.getStatusCode());
+      status.put("reasonPhrase", statusLine.getReasonPhrase());
+      json.put("responseStatus", status);
+    }
+  }
+
+  public String cookiesToString(List<Cookie> cookies) {
+    StringBuilder cookieResult = new StringBuilder();
+    if (cookies != null && cookies.size() > 0) {
+      boolean isFirst = true;
+      Iterator var3 = cookies.iterator();
+
+      while (var3.hasNext()) {
+        Cookie cookie = (Cookie) var3.next();
+        if (isFirst) {
+          isFirst = false;
+        } else {
+          cookieResult.append("; ");
+        }
+
+        cookieResult.append(cookie.getName());
+        cookieResult.append('=');
+        cookieResult.append(cookie.getValue());
+      }
+    }
+
+    return cookieResult.toString();
   }
 }
