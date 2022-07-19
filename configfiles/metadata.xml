@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?><Entities>
   <ExtensionPackages>
-    <ExtensionPackage dependsOn="" description="" minimumThingWorxVersion="6.0.0" name="ContentLoaderExtended_Extension" packageVersion="1.2.10" vendor="PTC Romania">
+    <ExtensionPackage dependsOn="" description="" minimumThingWorxVersion="6.0.0" name="ContentLoaderExtended_Extension" packageVersion="2.0.0" vendor="IQNOX">
       <JarResources/>
     </ExtensionPackage>
   </ExtensionPackages>
   <Resources>
-    <Resource aspect.isCreatable="false" aspect.isEditableExtensionObject="false" className="com.thingworx.extensions.http.ContentLoaderExtended" description="" name="ContentLoaderExtended"/>
+    <Resource aspect.isCreatable="false" aspect.isEditableExtensionObject="false" className="com.iqnox.twx.extensions.ContentLoaderExtended" description="" name="ContentLoaderExtended"/>
   </Resources>
   <DataShapes>
-    <DataShape baseDataShape="" description="Needed by the ContentLoaderExtended  extension." documentationContent="" homeMashup="" name="MultipartFiles_DS" tags="">
+    <DataShape baseDataShape="" description="Represents a file that can be included in a multipart request" documentationContent="" homeMashup="" name="MultipartFile_DS" tags="">
       <avatar/>
       <DesignTimePermissions>
         <Create/>

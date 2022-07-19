@@ -3,7 +3,7 @@ import org.apache.http.entity.mime.MultipartEntityBuilder
 
 import static groovyx.net.http.Method.POST
 
-group 'com.ptc'
+group 'com.iqnox.twx.extensions'
 version '1.0-SNAPSHOT'
 apply plugin: 'idea'
 apply plugin: 'eclipse'
@@ -27,7 +27,7 @@ project.targetCompatibility = 1.8
 // set the properties accordingly
 project.ext {
     incrementVersionNumber = true
-    extensionJar = "PatchUtilities_Extension.jar"
+    extensionJar = "ContentLoaderExtened_Extension.jar"
     baseDir = projectDir
     common = 'common'
     uiDir = "${baseDir}/ui" // if there are any widgets
@@ -38,11 +38,11 @@ project.ext {
     entitiesDir = "${baseDir}/configfiles/Entities" // folder additional Entities file that you want to be included in the extension
     zipDir = "${baseDir}/zip" // where to store the generated zip
     thingworxSdkDir = "${baseDir}/lib/common" // where the thingworx sdk is located
-    packageVendor = "ThingWorx Customer Service" // MANIFEST.MF information
-    packageName = "ThingWatcherExtension" // MANIFEST.MF information
-    packageTitle = "ThingWatcherExtension" // MANIFEST.MF information
+    packageVendor = "IQNOX" // MANIFEST.MF information
+    packageName = "ContentLoaderExtension" // MANIFEST.MF information
+    packageTitle = "ContentLoaderExtension" // MANIFEST.MF information
     packageVersion = version
-    thingworxServerRoot = "http://Administrator:admin@localhost:8009" // When calling the Upload task, what is the target server
+    thingworxServerRoot = "http://Administrator:Administrator12345@localhost:8015" // When calling the Upload task, what is the target server
 }
 
 repositories {
