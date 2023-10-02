@@ -82,6 +82,40 @@ let result = Resources.ContentLoaderExtended.ExecuteHttpRequest(
 );
 ```
 
+- Executing multiple requests in parallel
+
+```javascript
+// Execute multiple requests simultaneously by executing in a separate thread for each request.
+// This approach is much faster than calling multiple 'ExecuteHttpRequest()' in a row,
+// since each request blocks the execution of the script.
+let result = Resources.ContentLoaderExtended.ExecuteHttpRequests({
+  array: [
+    {
+      url: url1,
+      method: 'GET',
+    },
+    {
+      url: url2,
+      method: 'GET',
+    },
+    {
+      url: 'invalid ⚠️',
+      method: 'GET',
+    }
+  ]
+});
+
+// Array of all results (in this example there are three result objects)
+let allResults = result.array;
+
+// Array of all (fulfilled) responses. Each object's structure is exactly the same as that of 'ExecuteHttpRequest'.
+let responses = result.array.filter((e) => !e.error);
+
+// In case of an error ('ExecuteHttpRequest' would throw an error), an object with the property "error" of
+// type "string" is returned, which describes the error. In this example, they are simply logged.
+result.array.filter((e) => e.error).forEach((e) => logger.error(e.error));
+```
+
 - Sending a Multipart request with multiple files in the body:
 
 ```javascript
